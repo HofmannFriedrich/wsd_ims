@@ -1,3 +1,1 @@
-# ims_emb
-# wsd_ims
-# wsd_ims
+Use of embeddings for word sense disambiguation using IMS
