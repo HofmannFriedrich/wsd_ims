@@ -1,0 +1,22 @@
+1. In the test file of SensEval-2 English all-words task, some of the
+instance ids are incorrect. Please amend the test data as follow:
+
+line 989
+<sat id="d00.s37.t04">England</sat>
+--->
+<sat id="d00.s37.t04-1">England</sat>
+
+line 2012
+<head id="d01.s09.t17" sats="d01.s09.t17.s0">check</head>
+--->
+<head id="d01.s09.t17" sats="d01.s09.t16.s0">check</head>
+
+line 2048
+<head id="d01.s10.t34" sats="d01.s10.t34.s0">control</head>
+--->
+<head id="d01.s10.t34" sats="d01.s10.t33.s0">control</head>
+
+line 2129
+<head id="d01.s13.t19" sats="d01.s13.t19.s0">concert</head>
+--->
+<head id="d01.s13.t19" sats="d01.s13.t18.s0">concert</head>

@@ -1,0 +1,76 @@
+1. About SensEval-3 English lexical-sample task
+
+The format of SensEval-3 English lexical-sample task is not the same as
+SensEval-2 English lexical-sample task. To use IMS, please run the following
+command:
+a) ./amend_se3.bash EnglishLS.train
+    Generate two files: EnglishLS.train.amend.xml and EnglishLS.train.amend.key,
+  they can be used for training.
+b) ./amend_se3.bash EnglishLS.test EnglishLS.test.key
+    Generate two files: EnglishLS.test.amend.xml and EnglishLS.test.amend.key,
+  they can be used for testing
+
+2. About SensEval-3 English all-words task
+
+In the test file of SensEval-3 English all-words task, some of the instance
+ids of sats are wrong. Please amend the following lines:
+
+line 411
+<head id="d000.s020.t016" sats="d000.s020.t016">went</head>
+--->
+<head id="d000.s020.t016" sats="d000.s020.t017">went</head>
+
+line 733
+<head id="d000.s040.t001" sats="d000.s040.t001">believe</head>
+--->
+<head id="d000.s040.t001" sats="d000.s040.t002">believe</head>
+
+line 819
+<head id="d000.s048.t002" sats="d000.s048.t002">right</head>
+--->
+<head id="d000.s048.t002" sats="d000.s048.t001">right</head>
+
+line 926
+<head id="d000.s056.t004" sats="d000.s056.t004">little</head>
+--->
+<head id="d000.s056.t004" sats="d000.s056.t003">little</head>
+
+line 1133
+<head id="d000.s070.t003" sats="d000.s070.t003">turn</head>
+--->
+<head id="d000.s070.t003" sats="d000.s070.t002">turn</head>
+
+line 1192
+<head id="d000.s073.t001" sats="d000.s073.t001">went</head>
+--->
+<head id="d000.s073.t001" sats="d000.s073.t002">went</head>
+
+line 1567
+<head id="d000.s095.t017" sats="d000.s095.t017">take</head>
+--->
+<head id="d000.s095.t017" sats="d000.s095.t018">take</head>
+
+line 1687
+<head id="d000.s103.t001" sats="d000.s103.t001">fact</head>
+--->
+<head id="d000.s103.t001" sats="d000.s103.t000">fact</head>
+
+line 2029
+<head id="d000.s120.t001" sats="d000.s120.t001">time</head>
+--->
+<head id="d000.s120.t001" sats="d000.s120.t000">time</head>
+
+line 2180
+<head id="d000.s129.t002" sats="d000.s129.t002">drop</head>
+--->
+<head id="d000.s129.t002" sats="d000.s129.t003">drop</head>
+
+line 2938
+<head id="d001.s013.t015" sats="d001.s013.t014 d001.s013.t015">terms</head>
+--->
+<head id="d001.s013.t015" sats="d001.s013.t014 d001.s013.t016">terms</head>
+
+line 3692
+<head id="d001.s036.t038" sats="d001.s036.t038">takes</head>
+--->
+<head id="d001.s036.t038" sats="d001.s036.t039">takes</head>
