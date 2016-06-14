@@ -50,6 +50,9 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 	// item length
 	protected int m_InstanceLength;
 
+	protected int m_windowSize = 5;
+
+	
 	protected ArrayList<String> m_AWEset = new ArrayList<String>();
 
 	
@@ -180,11 +183,20 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 	
 	
 	private void getAWESet(){
-		
-		for(int i=0; i<this.m_Sentence.size(); i++){
-			String word = this.m_Sentence.getItem(i).get(AItem.Features.TOKEN.ordinal());
-			String embeddingStr = m_embExtractor.getEmbedding(word);
-			this.m_AWEset.add(embeddingStr);
+
+//		for(int i=0; i<this.m_Sentence.size(); i++){
+
+		for(int i = (this.m_IndexInSentence - this.m_windowSize); i <= (this.m_IndexInSentence + this.m_windowSize); i++){
+			
+			
+			if(i<0 | i>=this.m_Sentence.size()){
+				this.m_AWEset.add(m_embExtractor.getOutOfVocabEmbedding());
+			}
+			else{
+				String word = this.m_Sentence.getItem(i).get(AItem.Features.TOKEN.ordinal());
+				String embeddingStr = m_embExtractor.getEmbedding(word);
+				this.m_AWEset.add(embeddingStr);
+			}
 		}
 		
 	}
@@ -193,13 +205,15 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 		
 		if(this.m_AWEset.isEmpty()){this.getAWESet();}
 		
-		if(this.m_avgEmbedding==null){this.m_avgEmbedding=this.m_embExtractor.getOutOfVocabEmbedding().split(" ");}
+		if(this.m_avgEmbedding==null){this.m_avgEmbedding=this.m_AWEset.get(0).split(" ");}
 		
 		for(int i=0; i<this.m_AWEset.size(); i++){
 			
+			String[] embStr = this.m_AWEset.get(i).split(" ");
+			
 			for(int j=0; j<this.m_avgEmbedding.length; j++){
-				
-				float embValue = Float.parseFloat(this.m_avgEmbedding[j]) + Float.parseFloat(this.m_AWEset.get(i).split(" ")[j]); 
+							
+				float embValue = Float.parseFloat(this.m_avgEmbedding[j]) + Float.parseFloat(embStr[j]); 
 				
 				if(j==(this.m_avgEmbedding.length-1)){
 					this.m_avgEmbedding[j]= Float.toString(embValue/ this.m_avgEmbedding.length);
@@ -226,9 +240,9 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 
 		//if (this.m_IndexInSentence >=0 && this.m_IndexInSentence < this.m_Sentence.size()){
 
-		//if (this.m_AWEIndex >=0 && this.m_AWEIndex < this.m_AWEset.size()){
+		if (this.m_AWEIndex >=0 && this.m_AWEIndex < this.m_AWEset.size()){
 
-		if(this.m_IndexInEmbedding >= 0 && this.m_IndexInEmbedding < this.m_avgEmbedding.length){
+		//if(this.m_IndexInEmbedding >= 0 && this.m_IndexInEmbedding < this.m_avgEmbedding.length){
 			
 			feature = new CCWEFeature();
 			feature.setKey(this.formAWEName(this.m_IndexInEmbedding));
@@ -236,9 +250,10 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 			this.m_IndexInEmbedding++;
 			
 			if(this.m_IndexInEmbedding==this.m_avgEmbedding.length){
-				this.m_IndexInEmbedding=-1;
+				this.m_IndexInEmbedding=0;
+				this.m_AWEIndex++;
 				this.m_avgEmbedding=null;
-				this.m_AWEset.clear();
+				//this.m_AWEset.clear();
 	//			System.out.println("Instance: " + m_Index + ", Size: " + this.m_Sentence.size());
 			}
 						
