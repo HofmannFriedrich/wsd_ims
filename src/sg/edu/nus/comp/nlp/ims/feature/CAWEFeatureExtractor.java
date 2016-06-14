@@ -182,11 +182,9 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 	private void getAWESet(){
 		
 		for(int i=0; i<this.m_Sentence.size(); i++){
-			
 			String word = this.m_Sentence.getItem(i).get(AItem.Features.TOKEN.ordinal());
 			String embeddingStr = m_embExtractor.getEmbedding(word);
 			this.m_AWEset.add(embeddingStr);
-			
 		}
 		
 	}
@@ -200,15 +198,20 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 		for(int i=0; i<this.m_AWEset.size(); i++){
 			
 			for(int j=0; j<this.m_avgEmbedding.length; j++){
-				this.m_avgEmbedding[j] = Float.toString(Float.parseFloat(this.m_avgEmbedding[j]) + Float.parseFloat(this.m_AWEset.get(i).split(" ")[j]));
+				
+				float embValue = Float.parseFloat(this.m_avgEmbedding[j]) + Float.parseFloat(this.m_AWEset.get(i).split(" ")[j]); 
+				
+				if(j==(this.m_avgEmbedding.length-1)){
+					this.m_avgEmbedding[j]= Float.toString(embValue/ this.m_avgEmbedding.length);
+				}
+				else
+				{
+					this.m_avgEmbedding[j] = Float.toString(embValue);
+				}
 			}
 			
 		}
-		
-		for(int k=0; k<this.m_avgEmbedding.length; k++){
-			this.m_avgEmbedding[k]=Float.toString(Float.parseFloat(this.m_avgEmbedding[k]) / this.m_avgEmbedding.length);
-		}
-		
+				
 	}
 	
 	/**
@@ -225,7 +228,7 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 
 		//if (this.m_AWEIndex >=0 && this.m_AWEIndex < this.m_AWEset.size()){
 
-		if(this.m_IndexInEmbedding >= 0 && this.m_IndexInEmbedding< this.m_avgEmbedding.length){
+		if(this.m_IndexInEmbedding >= 0 && this.m_IndexInEmbedding < this.m_avgEmbedding.length){
 			
 			feature = new CCWEFeature();
 			feature.setKey(this.formAWEName(this.m_IndexInEmbedding));
