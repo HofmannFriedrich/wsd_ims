@@ -6,41 +6,46 @@
 package sg.edu.nus.comp.nlp.ims.util;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.regex.Pattern;
 
 /**
- * filter stop words and words that contains no alphabet.
+ * Extract embedding from parallel files
  *
- * @author zhongzhi
+ * @author Aratz Puerto
  *
  */
 public class CEmbeddingExtractor {
 
+	// Hash table to store the embeddings of the words appeared until the moment. 
+	// key: word, value: embedding
 	protected Hashtable<String,String> m_embeddingHash = new Hashtable<String,String>();
 
-	
+	// Embedding for out of vocabulary words
 	protected static String outOfVocabularyEmbedding = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
-
-
 
 	/**
 	 * constructor
 	 */
-/*	protected CEmbeddingExtractor() {
+	/*protected CEmbeddingExtractor() {
 				
 	}*/
 
+	
+	/**
+	 * Get the file names of the vocabulary and the embedding files containing the information of the word
+	 *
+	 * @param word
+	 *            word to be fetched
+	 * @return files[0]
+	 *            path of the vocabulary file 				
+	 * @return files[1]
+	 *            path of the embedding file 
+	 */
 	private String[] getFileNames(String word){
 		
-		String[] files = new String[2];
-	//	char c= word.toLowerCase().charAt(0);
-		
+		String[] files = new String[2];	
 		
 		if(word.matches("\\d.*")){
 			files[0]="voc.dig";
@@ -59,14 +64,21 @@ public class CEmbeddingExtractor {
 		
 	}
 
-
+	/**
+	 * Get the line number of the appearance of a word in the file
+	 *
+	 * @param word
+	 *            word to extract the line number
+	 * @param filePath
+	 *            path of the file to extract the line number 				
+	 * @return line_num
+	 *            line number of the appearance of the word word in the file in filePath 
+	 */
 	private long getLineNumber(String word, String filePath)
     {
 
 		try {
-
-			//String filepath = "embedding/"+getFileNames(word)[0];
-			int line_num = 0;
+			int line_num = -1;
 			String targetWord = word;
 			if(!word.matches("\\w.*")){targetWord="\\"+word;}
 			
@@ -81,17 +93,28 @@ public class CEmbeddingExtractor {
 			return line_num;
 			
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
-        return 0;
+        return -1;
     }
 	
+	
+	/**
+	 * Get embedding in a specific line number
+	 *
+	 * @param line_number
+	 *            line number to get the embedding from in the file
+	 * @param filePath
+	 *            file path of the file to get the embedding		
+	 * @return embedding
+	 *            embedding in the line number line_number in the file at filePath 
+	 */
 	private String getEmbeddingFromLineNumber(long line_number, String filePath){
 		
-		String embedding = "";
-		if (line_number > 0){ // The word is in the bocabulary and therefore an embedding can be retrieved for it
+		String embedding =  outOfVocabularyEmbedding;
+		
+		if (line_number >= 0){
 			
 			try {
 				String com = "sed -n '" + line_number + "{p;q;}' < " + filePath;
@@ -103,55 +126,39 @@ public class CEmbeddingExtractor {
 				p.destroy();
 			
 			} catch (IOException e1) {
-			// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
-		else{ // out of vocabulary case
-			embedding = outOfVocabularyEmbedding;
-		}
+
 	
 		return embedding;
 	}
 	
 	
+	/**
+	 * Get embedding for a word
+	 *
+	 * @param word
+	 *            word for whom to fetch the embedding		
+	 * @return embedding
+	 *            embedding of the word word 
+	 */
 	public String getEmbedding(String word){
 		
 		String embedding = this.outOfVocabularyEmbedding;
 		
-		if(this.m_embeddingHash.containsKey(word)){
-			
+		if(this.m_embeddingHash.containsKey(word)){	// fetch the embedding from the hash if it is a hit
 			embedding = this.m_embeddingHash.get(word);
-		
-			
-			// TODO: Borratu, probarako da
-			//System.out.println("[" + this.m_Index +"] " + this.m_IndexInSentence + "/" + this.m_Sentence.size() + ": " + word + " (*)");
-			/*if( this.m_IndexInSentence == 0 ){
-				System.out.print(this.m_Index + " ");
-			}*/
-
 		}
-		else{
+		else{ // if the word is not in the hash table fetch it from file
 			
-			// Hash taulan ez badago embeddigarentzako sarrerarik gehitu.
 			String vocabFilePath ="embedding/"+getFileNames(word)[0];
 			String vectorFilePath="embedding/"+getFileNames(word)[1];
-	        
-			// TODO: Borratu, probarako da
-			//System.out.print("[" + this.m_Index +"] " + this.m_IndexInSentence + "/" + this.m_Sentence.size() + ": " + word.toLowerCase());
-			
-			// Get the line number of the word appearance in the bocabulary file
+
 			long line_number=getLineNumber(word, vocabFilePath);		
-			
-			// TODO: pintln-ak borratu, probarako dira
-			//System.out.print(" (" + line_number+ ")\n");
-	    
-			
+
 	        embedding = getEmbeddingFromLineNumber(line_number, vectorFilePath);
 	        this.m_embeddingHash.put(word, embedding);
-	        //this.m_CurrentEmbedding = embeddingStr.split(" ");
-
-	       // System.out.println("Hash: " + this.m_embeddingHash.size());
 	        
 		}
 		
@@ -159,6 +166,11 @@ public class CEmbeddingExtractor {
 		
 	}
 
+	/**
+	 * Get an embedding for the out of vocabulary case	
+	 * @return embedding
+	 *            embedding for the out of vocabulary word 
+	 */
 	public String getOutOfVocabEmbedding(){
 		return this.outOfVocabularyEmbedding;
 	}

@@ -7,31 +7,16 @@ package sg.edu.nus.comp.nlp.ims.feature;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-//import java.util.*;
-// proba
-//import java.io.*;
 
 import sg.edu.nus.comp.nlp.ims.corpus.AItem;
 import sg.edu.nus.comp.nlp.ims.corpus.ICorpus;
 import sg.edu.nus.comp.nlp.ims.corpus.ISentence;
-//import sg.edu.nus.comp.nlp.ims.util.CSurroundingWordFilter;
 import sg.edu.nus.comp.nlp.ims.util.CEmbeddingExtractor;
 
-/*import java.util.Hashtable;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
-import java.util.regex.Pattern;
-import java.util.concurrent.atomic.AtomicInteger;*/
-
-
-
 /**
- * surrounding word extractor.
+ * Context Word Embedding extractor.
  *
- * @author zhongzhi
+ * @author Aratz Puerto
  *
  */
 public class CCWEFeatureExtractor implements IFeatureExtractor {
@@ -41,28 +26,32 @@ public class CCWEFeatureExtractor implements IFeatureExtractor {
 	// index of current instance
 	protected int m_Index = -1;
 
-	protected int m_CWEIndex = -1;
-	
 	// current sentence to process
 	protected ISentence m_Sentence = null;
 
 	// item index in current sentence
 	protected int m_IndexInSentence;
 
+	// item index in current embedding
 	protected int m_IndexInEmbedding;
 	
+	// embedding for current feature value
 	protected String[] m_CurrentEmbedding; 
-	
-	protected ArrayList<String> m_CWEset = new ArrayList<String>();
 	
 	// item length
 	protected int m_InstanceLength;
 	
+	// default window size
 	protected int m_windowSize = 5;
+	
+	// Element array string for current feature
+	protected ArrayList<String> m_CWEset = new ArrayList<String>();
 
-
-	// Hash table of the words appeared so far
-	//protected Hashtable<String,String> m_embeddingHash = new Hashtable<String,String>();
+	// item index in the element array string for current feature
+	protected int m_CWEIndex = -1;
+	
+	// target word index in the element array string
+	protected int m_targetCWEIndex = -1;
 	
 	// sentence before current sentence
 	protected int m_Left;
@@ -73,9 +62,7 @@ public class CCWEFeatureExtractor implements IFeatureExtractor {
 	// current feature
 	protected IFeature m_CurrentFeature = null;
 
-	//protected static long line_no;
-	//protected static String outOfVocabularyEmbedding = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
-	
+	// embedding extractor
 	protected static CEmbeddingExtractor m_embExtractor = new CEmbeddingExtractor();
 	
 	
@@ -179,149 +166,88 @@ public class CCWEFeatureExtractor implements IFeatureExtractor {
 	 * @return feature name
 	 */
 	protected String formCWEName(int p_Index) {
-		return "CWE_" + p_Index + "_" + this.m_IndexInEmbedding;
+		
+		if(p_Index<0){
+			return "CWE_" + -p_Index + "E" + this.m_IndexInEmbedding;
+		}
+		else
+		{
+			return "CWE" + p_Index + "E" + this.m_IndexInEmbedding;
+		}
+		
 	}
 	
 	
-	/*public String[] getFileNames(String word){
-		
-		String[] files = new String[2];
-	//	char c= word.toLowerCase().charAt(0);
-		
-		
-		if(word.matches("\\d.*")){
-			files[0]="voc.dig";
-			files[1]="emb.dig";	
-		}
-		else if(word.matches("[A-Za-z].*")){
-			files[0]="voc."+ word.toUpperCase().charAt(0);
-			files[1]="emb."+ word.toUpperCase().charAt(0);
-		}		
-		else{
-			files[0]="voc.punc";
-			files[1]="emb.punc";
-		}
-	
-		return files;
-		
-	}*/
-	
-	
-/*	public long getLineNumber(String word, String filePath)
-    {
-
-		try {
-
-			//String filepath = "embedding/"+getFileNames(word)[0];
-			int line_num = 0;
-			String targetWord = word;
-			if(!word.matches("\\w.*")){targetWord="\\"+word;}
-			
-			Process p = Runtime.getRuntime().exec(new String[]{"/bin/sh","-c","grep -wn '^"+ targetWord + "$' "+filePath});
-			BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String output = stdoutReader.readLine();	
-			if(output!=null){
-				String[] parts = output.split(":"); 
-				line_num = Integer.parseInt(parts[0]);} 
-			stdoutReader.close();
-			p.destroy();
-			return line_num;
-			
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
-        return 0;
-    }*/
-
-/*	public String getEmbeddingFromLineNumber(long line_number, String filePath){
-					
-			String embedding = "";
-			if (line_number > 0){ // The word is in the bocabulary and therefore an embedding can be retrieved for it
+	/**
+	 * get item list for current feature in current sentence
+	 * if the window exceed current sentence items outside the sentence get 
+	 * an out of vocabulary embedding
+	 */
+	private void getBoundedCWESet(){
 				
-				try {
-					String com = "sed -n '" + line_number + "{p;q;}' < " + filePath;
-					Process p = Runtime.getRuntime().exec(new String[]{"/bin/sh","-c",com});
-					BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-					embedding = stdoutReader.readLine();	
-					embedding.replace("\n", ""); //remove the line break
-					stdoutReader.close();
-					p.destroy();
-				
-				} catch (IOException e1) {
-				// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
-			else{ // out of vocabulary case
-				embedding = outOfVocabularyEmbedding;
-			}
-		
-		return embedding;
-	}*/
-	
-	/*private String getEmbedding(String word){
-		
-		String embedding = this.outOfVocabularyEmbedding;
-		
-		if(this.m_embeddingHash.containsKey(word)){
+		for(int i = (this.m_IndexInSentence - this.m_windowSize); i <= (this.m_IndexInSentence + this.m_windowSize); i++){			
 			
-			embedding = this.m_embeddingHash.get(word);
-		
-			
-			// TODO: Borratu, probarako da
-			//System.out.println("[" + this.m_Index +"] " + this.m_IndexInSentence + "/" + this.m_Sentence.size() + ": " + word + " (*)");
-			/*if( this.m_IndexInSentence == 0 ){
-				System.out.print(this.m_Index + " ");
-			}*/
-/*
-		}
-		else{
-			
-			// Hash taulan ez badago embeddigarentzako sarrerarik gehitu.
-			String vocabFilePath ="embedding/"+getFileNames(word)[0];
-			String vectorFilePath="embedding/"+getFileNames(word)[1];
-	        
-			// TODO: Borratu, probarako da
-			//System.out.print("[" + this.m_Index +"] " + this.m_IndexInSentence + "/" + this.m_Sentence.size() + ": " + word.toLowerCase());
-			
-			// Get the line number of the word appearance in the bocabulary file
-			long line_number=getLineNumber(word, vocabFilePath);		
-			
-			// TODO: pintln-ak borratu, probarako dira
-			//System.out.print(" (" + line_number+ ")\n");
-	    
-			
-	        embedding = getEmbeddingFromLineNumber(line_number, vectorFilePath);
-	        this.m_embeddingHash.put(word, embedding);
-	        //this.m_CurrentEmbedding = embeddingStr.split(" ");
-
-	       // System.out.println("Hash: " + this.m_embeddingHash.size());
-	        
-		}
-		
-		return embedding;
-		
-	}*/
-	
-	private void getCWESet(){
-				
-		for(int i = (this.m_IndexInSentence - this.m_windowSize); i <= (this.m_IndexInSentence + this.m_windowSize); i++){
-
-			//if(this.m_CWEset.isEmpty()){this.getCWESet();}
-			
-			
-			if(i<0 | i>=this.m_Sentence.size()){
-				this.m_CWEset.add(m_embExtractor.getOutOfVocabEmbedding());
-			}
-			else{
+			// If the window exceeds current sentence ignore the words which do so.
+			if(i>=0 && i<this.m_Sentence.size()){
 				String word = this.m_Sentence.getItem(i).get(AItem.Features.TOKEN.ordinal());
 				String embeddingStr = m_embExtractor.getEmbedding(word);
 				this.m_CWEset.add(embeddingStr);		
+				if(i==this.m_windowSize){this.m_targetCWEIndex=this.m_CWEset.size();}
 			}	
+			
 		}
 	}
+	
+	
+	/**
+	 * get item list for current feature from current, previous and next sentences
+	 */
+	private void getCWESet(){
+
+		for(int i = (this.m_IndexInSentence - this.m_windowSize); i <= (this.m_IndexInSentence + this.m_windowSize); i++){
+					
+			String word = null;
+			
+			// The window exceeds the sentence and needs to get the word from the previous  one.
+			if(i<0 && this.m_Index>0){ 
+				
+				int prevSentenceId = this.m_Corpus.getSentenceID(this.m_Index-1);
+				ISentence previousSentence = this.m_Corpus.getSentence(prevSentenceId);
+				int sentenceID = previousSentence.size() + i;
+				
+				// The window might still exceed the previous sentence.
+				if(sentenceID>=0){ 
+					word = previousSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+				}
+				
+			}
+			// The window exceeds the sentence and needs to get the word from the next.
+			else if (i>=this.m_Sentence.size() && this.m_Index<this.m_Corpus.numOfSentences()){ 
+				
+				int nextSentenceId = this.m_Corpus.getSentenceID(this.m_Index+1);
+				ISentence nextSentence = this.m_Corpus.getSentence(nextSentenceId);
+				int sentenceID = i - this.m_Sentence.size();
+				
+				// The window might still exceed next sentence.
+				if(sentenceID < nextSentence.size()){ 
+					word = nextSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+				}
+				
+			}
+			else{
+				word = this.m_Sentence.getItem(i).get(AItem.Features.TOKEN.ordinal());
+			}
+		
+			if (word != null){
+				String embeddingStr = m_embExtractor.getEmbedding(word);
+				this.m_CWEset.add(embeddingStr);
+				if(i==this.m_windowSize){this.m_targetCWEIndex=this.m_CWEset.size();}
+			}
+			
+		}
+	}
+	
+	
 	
 	/**
 	 * get next feature
@@ -331,19 +257,26 @@ public class CCWEFeatureExtractor implements IFeatureExtractor {
 	private IFeature getNext() {
 				
 		IFeature feature = null;	
-				
-		if(this.m_CWEset.isEmpty()){this.getCWESet();}
 		
+		
+		// Get the set of word for the current representation
+		if(this.m_CWEset.isEmpty()){getCWESet();}
+		
+		// Create a feature for each element in the set of words
 		if (this.m_CWEIndex >=0 && this.m_CWEIndex < this.m_CWEset.size()){
 
 			feature = new CCWEFeature();	
-			feature.setKey("CWE_" + this.m_CWEIndex + "_" + this.m_IndexInEmbedding);
-				
+			// Get the position of the word in relation to the target word
+			int embInd = this.m_CWEIndex-this.m_targetCWEIndex;
+			feature.setKey(this.formCWEName(embInd));
+			
+			// Since 300 features have to be created for each CWE, the embedding only has to be fetched the first time	
 			if(this.m_CurrentEmbedding==null){this.m_CurrentEmbedding=this.m_CWEset.get(this.m_CWEIndex).split(" ");}
 						
 			feature.setValue(this.m_CurrentEmbedding[this.m_IndexInEmbedding]);
 			this.m_IndexInEmbedding++;
 			
+			// If the last feature for the CWE has been created restart variables for the next target word
 			if(this.m_IndexInEmbedding==this.m_CurrentEmbedding.length){
 				this.m_IndexInEmbedding = 0;
 				this.m_CWEIndex++;
@@ -376,16 +309,13 @@ public class CCWEFeatureExtractor implements IFeatureExtractor {
 	 */
 	@Override
 	public boolean restart() {
-	//	this.m_SurroundingWordIndex = 0;
-		//this.m_IndexInSentence = 0;
+
 		this.m_IndexInEmbedding=0;
 		this.m_CurrentFeature = null;
 		this.m_CurrentEmbedding = null;
 		this.m_CWEset.clear();
 		this.m_CWEIndex=0;
-//		this.getCWESet();
 
-		
 		return this.validIndex(this.m_Index);
 	}
 
@@ -434,7 +364,7 @@ public class CCWEFeatureExtractor implements IFeatureExtractor {
 			this.m_IndexInSentence = this.m_Corpus.getIndexInSentence(p_Index);
 			this.m_InstanceLength = this.m_Corpus.getLength(p_Index);
 			this.m_Sentence = this.m_Corpus.getSentence(this.m_Corpus.getSentenceID(p_Index));
-			this.getCWESet();
+			//this.getCWESet();
 			
 			this.restart();							
 			

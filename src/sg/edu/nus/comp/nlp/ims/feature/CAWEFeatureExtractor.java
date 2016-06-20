@@ -4,30 +4,16 @@
  * All Rights Reserved.
  */
 package sg.edu.nus.comp.nlp.ims.feature;
-
 import java.util.*;
-// proba
-import java.io.*;
-
 import sg.edu.nus.comp.nlp.ims.corpus.AItem;
 import sg.edu.nus.comp.nlp.ims.corpus.ICorpus;
 import sg.edu.nus.comp.nlp.ims.corpus.ISentence;
 import sg.edu.nus.comp.nlp.ims.util.CEmbeddingExtractor;
-import sg.edu.nus.comp.nlp.ims.util.CSurroundingWordFilter;
-import sg.edu.nus.comp.nlp.ims.util.CEmbeddingExtractor;
-
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-//import java.util.stream.Stream;
-import java.util.regex.Pattern;
-//import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * surrounding word extractor.
+ * Average Context Word Embedding extractor.
  *
- * @author zhongzhi
+ * @author Aratz Puerto
  *
  */
 public class CAWEFeatureExtractor implements IFeatureExtractor {
@@ -42,22 +28,27 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 
 	// item index in current sentence
 	protected int m_IndexInSentence;
+	
+	// item index in current embedding
 	protected int m_IndexInEmbedding;
 	
-//	protected String[] m_CurrentEmbedding; 
+	// average embedding for current feature value
 	protected String[] m_avgEmbedding;
 	
 	// item length
 	protected int m_InstanceLength;
 
+	// default window size
 	protected int m_windowSize = 5;
-
 	
+	// Element array string for current feature
 	protected ArrayList<String> m_AWEset = new ArrayList<String>();
 
-	
-	// index of surrounding word feature
-	//protected Hashtable<String,String> m_embeddingHash = new Hashtable<String,String>();
+	// item index in the element array string for current feature
+	protected int m_AWEIndex = -1;
+
+	// target word index in the element array string
+	protected int m_targetAWEIndex = -1;
 	
 	// sentence before current sentence
 	protected int m_Left;
@@ -68,13 +59,9 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 	// current feature
 	protected IFeature m_CurrentFeature = null;
 
-	//protected static long line_no;
-	//protected static String outOfVocabularyEmbedding = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
-
+	// embedding extractor
 	protected static CEmbeddingExtractor m_embExtractor = new CEmbeddingExtractor();
 
-	//protected ArrayList<String> m_avgEmbedding = new ArrayList<String>();
-	protected int m_AWEIndex = -1;
 		
 	/**
 	 * constructor
@@ -179,32 +166,85 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 		return "AWE_" + this.m_IndexInEmbedding; 
 	}
 	
-
-	
-	
-	private void getAWESet(){
-
-//		for(int i=0; i<this.m_Sentence.size(); i++){
-
+	/**
+	 * get item list for current feature in current sentence
+	 * if the window exceed current sentence items outside the sentence get 
+	 * an out of vocabulary embedding
+	 */
+	private void getBoundedAWESet(){
+		
 		for(int i = (this.m_IndexInSentence - this.m_windowSize); i <= (this.m_IndexInSentence + this.m_windowSize); i++){
-			
-			
-			if(i<0 | i>=this.m_Sentence.size()){
-				this.m_AWEset.add(m_embExtractor.getOutOfVocabEmbedding());
-			}
-			else{
+		
+			// If the window exceeds current sentence ignore the words which do so.
+			if(i>=0 && i<this.m_Sentence.size()){			
 				String word = this.m_Sentence.getItem(i).get(AItem.Features.TOKEN.ordinal());
 				String embeddingStr = m_embExtractor.getEmbedding(word);
 				this.m_AWEset.add(embeddingStr);
+				if(i==this.m_windowSize){this.m_targetAWEIndex=this.m_AWEset.size();}
 			}
+			
+			
 		}
 		
 	}
 	
+	/**
+	 * get item list for current feature from current, previous and next sentences
+	 */
+	private void getAWESet(){
+
+		for(int i = (this.m_IndexInSentence - this.m_windowSize); i <= (this.m_IndexInSentence + this.m_windowSize); i++){
+					
+			String word = null;
+			
+			// The window exceeds the sentence and needs to get the word from the previous  one.
+			if(i<0 && this.m_Index>0){ 
+				
+				int prevSentenceId = this.m_Corpus.getSentenceID(this.m_Index-1);
+				ISentence previousSentence = this.m_Corpus.getSentence(prevSentenceId);
+				int sentenceID = previousSentence.size() + i;
+				
+				// The window might still exceed the previous sentence.
+				if(sentenceID >= 0){ 
+					word = previousSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+				}
+				
+			}
+			// The window exceeds the sentence and needs to get the word from the next.
+			else if (i>=this.m_Sentence.size() && this.m_Index<this.m_Corpus.numOfSentences()){ 
+			
+				int nextSentenceId = this.m_Corpus.getSentenceID(this.m_Index+1);
+				ISentence nextSentence = this.m_Corpus.getSentence(nextSentenceId);
+				int sentenceID = i - this.m_Sentence.size();
+				
+				// The window might still exceed next sentence.
+				if(sentenceID<nextSentence.size()){ 
+					word = nextSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+				}
+			}
+			// The whole window takes words from current sentence
+			else{
+				word = this.m_Sentence.getItem(i).get(AItem.Features.TOKEN.ordinal());
+			}
+		
+			if(word != null){
+				String embeddingStr = m_embExtractor.getEmbedding(word);
+				this.m_AWEset.add(embeddingStr);
+				if(i==this.m_windowSize){this.m_targetAWEIndex=this.m_AWEset.size();}
+			}
+		}
+				
+	}
+	
+	/**
+	 * get the average of the embedding stored in AWEset 
+	 */
 	private void getAvgEmbedding(){
 		
+		// Get the set of words for the current AWE
 		if(this.m_AWEset.isEmpty()){this.getAWESet();}
 		
+		// Get the first element of the set as the first embedding for the avg
 		if(this.m_avgEmbedding==null){this.m_avgEmbedding=this.m_AWEset.get(0).split(" ");}
 		
 		for(int i=0; i<this.m_AWEset.size(); i++){
@@ -215,13 +255,8 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 							
 				float embValue = Float.parseFloat(this.m_avgEmbedding[j]) + Float.parseFloat(embStr[j]); 
 				
-				if(j==(this.m_avgEmbedding.length-1)){
-					this.m_avgEmbedding[j]= Float.toString(embValue/ this.m_avgEmbedding.length);
-				}
-				else
-				{
-					this.m_avgEmbedding[j] = Float.toString(embValue);
-				}
+				if(j==(this.m_avgEmbedding.length-1)){this.m_avgEmbedding[j]= Float.toString(embValue/ this.m_avgEmbedding.length);}
+				else{this.m_avgEmbedding[j] = Float.toString(embValue);}
 			}
 			
 		}
@@ -235,26 +270,24 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 	 */	
 	private IFeature getNext() {
 		
-		IFeature feature = null;	
+		IFeature feature = null;
+		
+		// Get the embedding containing the average of all the embeddings in the current AWE set
 		if(this.m_avgEmbedding==null){getAvgEmbedding();}
 
-		//if (this.m_IndexInSentence >=0 && this.m_IndexInSentence < this.m_Sentence.size()){
-
+		// Create a feature for each element in the set of words
 		if (this.m_AWEIndex >=0 && this.m_AWEIndex < this.m_AWEset.size()){
-
-		//if(this.m_IndexInEmbedding >= 0 && this.m_IndexInEmbedding < this.m_avgEmbedding.length){
-			
+		
 			feature = new CCWEFeature();
 			feature.setKey(this.formAWEName(this.m_IndexInEmbedding));
 			feature.setValue(this.m_avgEmbedding[this.m_IndexInEmbedding]);
 			this.m_IndexInEmbedding++;
-			
+		
+			// If the last feature for the AWE has been created restart variables for the next target word
 			if(this.m_IndexInEmbedding==this.m_avgEmbedding.length){
 				this.m_IndexInEmbedding=0;
 				this.m_AWEIndex++;
 				this.m_avgEmbedding=null;
-				//this.m_AWEset.clear();
-	//			System.out.println("Instance: " + m_Index + ", Size: " + this.m_Sentence.size());
 			}
 						
 		}
@@ -262,8 +295,6 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 		return feature;
 		
 	}
-	
-	
 	
 	
 	/*
@@ -286,11 +317,8 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 	 */
 	@Override
 	public boolean restart() {
-	//	this.m_SurroundingWordIndex = 0;	
-		this.m_IndexInSentence = 0;
 		this.m_IndexInEmbedding = 0;
 		this.m_avgEmbedding = null;
-		//this.m_CurrentEmbedding = null;
 		this.m_CurrentFeature = null;
 		this.m_AWEIndex=0;
 		this.m_AWEset.clear();
@@ -343,9 +371,7 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 			this.m_IndexInSentence = this.m_Corpus.getIndexInSentence(p_Index);
 			this.m_InstanceLength = this.m_Corpus.getLength(p_Index);
 			this.m_Sentence = this.m_Corpus.getSentence(this.m_Corpus.getSentenceID(p_Index));
-//			this.m_CWESet.clear();
-	//		this.getAWESet();
-			
+		
 			this.restart();							
 			
 			return true;
