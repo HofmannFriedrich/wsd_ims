@@ -20,7 +20,7 @@ public class CEmbeddingExtractor {
 
 	// Hash table to store the embeddings of the words appeared until the moment. 
 	// key: word, value: embedding
-	protected Hashtable<String,String> m_embeddingHash = new Hashtable<String,String>();
+	protected Hashtable<String,String> m_embeddingHash = new Hashtable<String,String>();;
 
 	// Embedding for out of vocabulary words
 	protected static String outOfVocabularyEmbedding = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
@@ -28,8 +28,8 @@ public class CEmbeddingExtractor {
 	/**
 	 * constructor
 	 */
-	/*protected CEmbeddingExtractor() {
-				
+	/*public CEmbeddingExtractor() {
+					
 	}*/
 
 	
@@ -159,7 +159,8 @@ public class CEmbeddingExtractor {
 
 	        embedding = getEmbeddingFromLineNumber(line_number, vectorFilePath);
 	        this.m_embeddingHash.put(word, embedding);
-	        
+	        if(this.m_embeddingHash.size() == 1000000){this.m_embeddingHash.clear();}
+
 		}
 		
 		return embedding;

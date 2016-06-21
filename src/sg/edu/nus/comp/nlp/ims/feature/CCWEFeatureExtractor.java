@@ -65,11 +65,12 @@ public class CCWEFeatureExtractor implements IFeatureExtractor {
 	// embedding extractor
 	protected static CEmbeddingExtractor m_embExtractor = new CEmbeddingExtractor();
 	
-	
 	/**
 	 * constructor
 	 */
 	public CCWEFeatureExtractor() {
+		
+		
 		this.m_Left = Integer.MAX_VALUE;
 		this.m_Right = Integer.MAX_VALUE;
 	}
@@ -95,14 +96,14 @@ public class CCWEFeatureExtractor implements IFeatureExtractor {
 	 * @param p_StopWords
 	 *            stop word list
 	 */
-	public CCWEFeatureExtractor(HashSet<String> p_StopWords) {
+	/*public CCWEFeatureExtractor(HashSet<String> p_StopWords) {
 		if (p_StopWords == null) {
 			throw new IllegalArgumentException(
 					"stop words list should not be null.");
 		}
 		this.m_Left = Integer.MAX_VALUE;
 		this.m_Right = Integer.MAX_VALUE;
-	}
+	}*/
 
 	/**
 	 * constructor

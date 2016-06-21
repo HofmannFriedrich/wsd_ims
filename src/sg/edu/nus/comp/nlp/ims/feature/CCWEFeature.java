@@ -18,8 +18,8 @@ public class CCWEFeature extends AListFeature {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public CCWEFeature() {
-	}
+	/*public CCWEFeature() {
+	}*/
 
 	/*
 	 * (non-Javadoc)

@@ -62,7 +62,7 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 	// embedding extractor
 	protected static CEmbeddingExtractor m_embExtractor = new CEmbeddingExtractor();
 
-		
+	
 	/**
 	 * constructor
 	 */
@@ -92,14 +92,14 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 	 * @param p_StopWords
 	 *            stop word list
 	 */
-	public CAWEFeatureExtractor(HashSet<String> p_StopWords) {
+	/*public CAWEFeatureExtractor(HashSet<String> p_StopWords) {
 		if (p_StopWords == null) {
 			throw new IllegalArgumentException(
 					"stop words list should not be null.");
 		}
 		this.m_Left = Integer.MAX_VALUE;
 		this.m_Right = Integer.MAX_VALUE;
-	}
+	}*/
 
 	/**
 	 * constructor
@@ -277,7 +277,7 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 
 		// Create a feature for each element in the set of words
 		if (this.m_AWEIndex >=0 && this.m_AWEIndex < this.m_AWEset.size()){
-		
+			
 			feature = new CCWEFeature();
 			feature.setKey(this.formAWEName(this.m_IndexInEmbedding));
 			feature.setValue(this.m_avgEmbedding[this.m_IndexInEmbedding]);
