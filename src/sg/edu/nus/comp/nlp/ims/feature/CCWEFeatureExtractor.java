@@ -214,26 +214,30 @@ public class CCWEFeatureExtractor implements IFeatureExtractor {
 				
 				int prevSentenceId = this.m_Corpus.getSentenceID(this.m_Index-1);
 				ISentence previousSentence = this.m_Corpus.getSentence(prevSentenceId);
-				int sentenceID = previousSentence.size() + i;
 				
-				// The window might still exceed the previous sentence.
-				if(sentenceID>=0){ 
-					word = previousSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+				if(previousSentence != null){
+					int sentenceID = previousSentence.size() + i;
+				
+					//The window might still exceed the previous sentence.
+					if(sentenceID>=0){ 
+						word = previousSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+					}
 				}
-				
 			}
 			// The window exceeds the sentence and needs to get the word from the next.
 			else if (i>=this.m_Sentence.size() && this.m_Index<this.m_Corpus.numOfSentences()){ 
 				
 				int nextSentenceId = this.m_Corpus.getSentenceID(this.m_Index+1);
 				ISentence nextSentence = this.m_Corpus.getSentence(nextSentenceId);
-				int sentenceID = i - this.m_Sentence.size();
 				
-				// The window might still exceed next sentence.
-				if(sentenceID < nextSentence.size()){ 
-					word = nextSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+				if(nextSentence != null){
+					int sentenceID = i - this.m_Sentence.size();
+				
+					// The window might still exceed next sentence.
+					if(sentenceID < nextSentence.size()){ 
+						word = nextSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+					}
 				}
-				
 			}
 			else{
 				word = this.m_Sentence.getItem(i).get(AItem.Features.TOKEN.ordinal());

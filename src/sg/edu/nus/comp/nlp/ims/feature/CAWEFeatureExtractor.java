@@ -7,6 +7,7 @@ package sg.edu.nus.comp.nlp.ims.feature;
 import java.util.*;
 import sg.edu.nus.comp.nlp.ims.corpus.AItem;
 import sg.edu.nus.comp.nlp.ims.corpus.ICorpus;
+import sg.edu.nus.comp.nlp.ims.corpus.IItem;
 import sg.edu.nus.comp.nlp.ims.corpus.ISentence;
 import sg.edu.nus.comp.nlp.ims.util.CEmbeddingExtractor;
 
@@ -197,29 +198,43 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 					
 			String word = null;
 			
+			
+			System.out.println("i: "+i+" m_Index: "+this.m_Index + " Sentence size:"+ this.m_Sentence.size() +" Nº Sentences:" + this.m_Corpus.numOfSentences());
+			
 			// The window exceeds the sentence and needs to get the word from the previous  one.
-			if(i<0 && this.m_Index>0){ 
+			if(i<=0 && this.m_Index>0){ 
 				
 				int prevSentenceId = this.m_Corpus.getSentenceID(this.m_Index-1);
 				ISentence previousSentence = this.m_Corpus.getSentence(prevSentenceId);
-				int sentenceID = previousSentence.size() + i;
 				
-				// The window might still exceed the previous sentence.
-				if(sentenceID >= 0){ 
-					word = previousSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+				if(previousSentence != null){
+				
+					int sentenceID = previousSentence.size() + i;
+												
+					// The window might still exceed the previous sentence.
+					if(sentenceID>previousSentence.size()){
+						word = previousSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+					}
+					//word = previousSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+
+					
 				}
 				
 			}
 			// The window exceeds the sentence and needs to get the word from the next.
-			else if (i>=this.m_Sentence.size() && this.m_Index<this.m_Corpus.numOfSentences()){ 
+			else if (i>=this.m_Sentence.size() && this.m_Index+1<this.m_Corpus.numOfSentences()){ 
 			
 				int nextSentenceId = this.m_Corpus.getSentenceID(this.m_Index+1);
 				ISentence nextSentence = this.m_Corpus.getSentence(nextSentenceId);
-				int sentenceID = i - this.m_Sentence.size();
 				
-				// The window might still exceed next sentence.
-				if(sentenceID<nextSentence.size()){ 
-					word = nextSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+				if (nextSentence != null){
+
+					int sentenceID = i - this.m_Sentence.size();
+					
+					// The window might still exceed next sentence.
+					if(sentenceID<nextSentence.size()){ 
+						word = nextSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
+					}
 				}
 			}
 			// The whole window takes words from current sentence
@@ -270,6 +285,7 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 	 */	
 	private IFeature getNext() {
 		
+		System.out.println("GET"+this.m_Index);
 		IFeature feature = null;
 		
 		// Get the embedding containing the average of all the embeddings in the current AWE set
