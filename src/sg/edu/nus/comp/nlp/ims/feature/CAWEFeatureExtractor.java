@@ -197,10 +197,7 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 		for(int i = (this.m_IndexInSentence - this.m_windowSize); i <= (this.m_IndexInSentence + this.m_windowSize); i++){
 					
 			String word = null;
-			
-			
-			System.out.println("i: "+i+" m_Index: "+this.m_Index + " Sentence size:"+ this.m_Sentence.size() +" Nº Sentences:" + this.m_Corpus.numOfSentences());
-			
+						
 			// The window exceeds the sentence and needs to get the word from the previous  one.
 			if(i<=0 && this.m_Index>0){ 
 				
@@ -215,8 +212,6 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 					if(sentenceID>previousSentence.size()){
 						word = previousSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
 					}
-					//word = previousSentence.getItem(sentenceID).get(AItem.Features.TOKEN.ordinal());
-
 					
 				}
 				
@@ -285,7 +280,6 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 	 */	
 	private IFeature getNext() {
 		
-		System.out.println("GET"+this.m_Index);
 		IFeature feature = null;
 		
 		// Get the embedding containing the average of all the embeddings in the current AWE set
