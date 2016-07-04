@@ -1,1 +1,5 @@
 ${build_files}-prop lib/prop.xml -ptm lib/tag.bin.gz -tagdict lib/tagdict.txt -ssm lib/EnglishSD.bin.gz "examples/bank.n.train.xml" "examples/bank.n.train.key" "examples" -f sg.edu.nus.comp.nlp.ims.feature.CCWEFeatureExtractor
+
+
+
+${build_files}-prop lib/prop.xml -ptm lib/tag.bin.gz -tagdict lib/tagdict.txt -ssm lib/EnglishSD.bin.gz "examples/bank.n.train.xml" "examples/bank.n.train.key" "examples" -f sg.edu.nus.comp.nlp.ims.feature.CAWEFeatureExtractor
