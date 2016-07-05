@@ -225,11 +225,12 @@ public class CCWEFeatureExtractor implements IFeatureExtractor {
 				}
 			}
 			// The window exceeds the sentence and needs to get the word from the next.
-			else if (i>=this.m_Sentence.size() && this.m_Index<this.m_Corpus.numOfSentences()){ 
+			else if (i>=this.m_Sentence.size() && this.m_Index<this.m_Corpus.numOfSentences()-1){ 
 				
 				int nextSentenceId = this.m_Corpus.getSentenceID(this.m_Index+1);
 				ISentence nextSentence = this.m_Corpus.getSentence(nextSentenceId);
 				
+				// TODO: probatu nulla
 				if(nextSentence != null){
 					int sentenceID = i - this.m_Sentence.size();
 				
@@ -246,10 +247,13 @@ public class CCWEFeatureExtractor implements IFeatureExtractor {
 			if (word != null){
 				String embeddingStr = m_embExtractor.getEmbedding(word);
 				this.m_CWEset.add(embeddingStr);
-				if(i==this.m_windowSize){this.m_targetCWEIndex=this.m_CWEset.size();}
+				if(i==this.m_IndexInSentence){this.m_targetCWEIndex=this.m_CWEset.size()-1;}
 			}
 			
 		}
+		
+		this.m_CWEset.trimToSize();
+		
 	}
 	
 	
@@ -272,8 +276,13 @@ public class CCWEFeatureExtractor implements IFeatureExtractor {
 
 			feature = new CCWEFeature();	
 			// Get the position of the word in relation to the target word
+			int ind = this.m_CWEIndex;
+			int tind = this.m_targetCWEIndex;
 			int embInd = this.m_CWEIndex-this.m_targetCWEIndex;
+						
 			feature.setKey(this.formCWEName(embInd));
+			
+			System.out.println(this.formCWEName(embInd));
 			
 			// Since 300 features have to be created for each CWE, the embedding only has to be fetched the first time	
 			if(this.m_CurrentEmbedding==null){this.m_CurrentEmbedding=this.m_CWEset.get(this.m_CWEIndex).split(" ");}

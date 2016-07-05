@@ -217,7 +217,7 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 				
 			}
 			// The window exceeds the sentence and needs to get the word from the next.
-			else if (i>=this.m_Sentence.size() && this.m_Index+1<this.m_Corpus.numOfSentences()){ 
+			else if (i>=this.m_Sentence.size() && this.m_Index+1<this.m_Corpus.numOfSentences()-1){ 
 			
 				int nextSentenceId = this.m_Corpus.getSentenceID(this.m_Index+1);
 				ISentence nextSentence = this.m_Corpus.getSentence(nextSentenceId);
@@ -240,9 +240,12 @@ public class CAWEFeatureExtractor implements IFeatureExtractor {
 			if(word != null){
 				String embeddingStr = m_embExtractor.getEmbedding(word);
 				this.m_AWEset.add(embeddingStr);
-				if(i==this.m_windowSize){this.m_targetAWEIndex=this.m_AWEset.size();}
+				if(i==this.m_IndexInSentence){this.m_targetAWEIndex=this.m_AWEset.size()-1;}
+
 			}
 		}
+		
+		this.m_AWEset.trimToSize();
 				
 	}
 	
