@@ -1,4 +1,11 @@
 #!/usr/bin/perl
+#SBATCH -p 16_cores
+#SBATCH --job-name=1Hx1C_getKeys
+#SBATCH --mem-per-cpu=1900m
+#SBATCH --cpus-per-task=1
+#SBATCH --output=log/launch_%j.out
+#SBATCH --error=log/launch_%j.err
+
 use strict;
 use warnings;
 use File::Basename;
@@ -18,6 +25,7 @@ open(my $fh, '>', $auxfile ) or die "Ezin izan da fitxategia sortu $!";
 
 foreach my $file (@files)
 {
+  
     next if ($file eq "." || $file eq "..");
     my $lexelItem = "";
     my $instanceId="";
@@ -28,21 +36,23 @@ foreach my $file (@files)
     open(DATA, "$dir/$file") or die "Ezin izan da $file fitxategia ireki $!";
 
     while(<DATA>){
-	my @eremuak = split(" ",$_);
-	$instanceId=$eremuak[1];
-	$senseId=$eremuak[2];
-	
-	print("$lexelItem $instanceId $senseId\n");
-	print($fh "$lexelItem $instanceId $senseId\n");
+    	my @eremuak = split(" ",$_);
+    	$instanceId=$eremuak[1];
+    	$senseId=$eremuak[2];
+
+    	print("$lexelItem $instanceId $senseId\n");
+    	print($fh "$lexelItem $instanceId $senseId\n");
+
     }
+
     
     
 }
 
-
 system("sort $auxfile > $irteerafitx");
 system("rm -f $auxfile");
 
+print("Amaitua\n");
 
 close($fh);
 
