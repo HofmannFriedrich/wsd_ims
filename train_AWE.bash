@@ -6,7 +6,6 @@
 #SBATCH --output=log/launch_%j.out
 #SBATCH --error=log/launch_%j.err
 
-
 if [ $# -lt 3 ]; then
   echo $0 train.xml train.key savedir s2 c2
   exit
