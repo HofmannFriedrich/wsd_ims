@@ -5,6 +5,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --output=log/launch_%j.out
 #SBATCH --error=log/launch_%j.err
+
 if [ $# -lt 3 ]; then
   echo "$0 modeldir testfile savedir index.sense(option)"
   exit
